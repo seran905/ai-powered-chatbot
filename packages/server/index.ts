@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import z from 'zod';
+import { conversationRepository } from './repositories/conversation.repository';
 
 dotenv.config();
 
@@ -21,9 +22,6 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/api/hello', (req: Request, res: Response) => {
    res.json({ message: 'Hello from the API!' });
 });
-
-// let lastResponseId: string | null = null;
-const conversations = new Map<string, string>(); // Map to store conversation IDs and their last response IDs
 
 const chatSchema = z.object({
    prompt: z
@@ -48,10 +46,11 @@ app.post('/api/chat', async (req: Request, res: Response) => {
          input: prompt,
          temperature: 0.2,
          max_output_tokens: 100,
-         previous_response_id: conversations.get(conversationId) || undefined, // Use the last response ID if available
+         previous_response_id:
+            conversationRepository.getLastResponseId(conversationId), // Use the last response ID if available
       });
 
-      conversations.set(conversationId, response.id); // Store the last response ID for this conversation
+      conversationRepository.setLastResponseId(conversationId, response.id); // Store the last response ID for this conversation
 
       res.json({ message: response.output_text });
    } catch (error) {
