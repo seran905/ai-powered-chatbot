@@ -2,6 +2,7 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
+import z from 'zod';
 
 dotenv.config();
 
@@ -24,7 +25,21 @@ app.get('/api/hello', (req: Request, res: Response) => {
 // let lastResponseId: string | null = null;
 const conversations = new Map<string, string>(); // Map to store conversation IDs and their last response IDs
 
+const chatSchema = z.object({
+   prompt: z
+      .string()
+      .trim()
+      .min(1, 'Prompt cannot be empty')
+      .max(1000, 'Prompt cannot exceed 1000 characters'),
+   conversationId: z.uuid(),
+});
+
 app.post('/api/chat', async (req: Request, res: Response) => {
+   const parseResult = chatSchema.safeParse(req.body);
+   if (!parseResult.success) {
+      return res.status(400).json({ error: z.flattenError(parseResult.error) });
+   }
+
    const { prompt, conversationId } = req.body;
 
    try {
