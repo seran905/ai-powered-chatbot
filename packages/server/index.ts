@@ -21,8 +21,11 @@ app.get('/api/hello', (req: Request, res: Response) => {
    res.json({ message: 'Hello from the API!' });
 });
 
+// let lastResponseId: string | null = null;
+const conversations = new Map<string, string>(); // Map to store conversation IDs and their last response IDs
+
 app.post('/api/chat', async (req: Request, res: Response) => {
-   const { prompt } = req.body;
+   const { prompt, conversationId } = req.body;
 
    try {
       const response = await openaiClient.responses.create({
@@ -30,7 +33,10 @@ app.post('/api/chat', async (req: Request, res: Response) => {
          input: prompt,
          temperature: 0.2,
          max_output_tokens: 100,
+         previous_response_id: conversations.get(conversationId) || undefined, // Use the last response ID if available
       });
+
+      conversations.set(conversationId, response.id); // Store the last response ID for this conversation
 
       res.json({ message: response.output_text });
    } catch (error) {
