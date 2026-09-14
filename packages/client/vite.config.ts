@@ -5,4 +5,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   cacheDir: '../../node_modules/.vite/client',
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    }
+  }
 })
