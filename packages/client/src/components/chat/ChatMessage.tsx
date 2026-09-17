@@ -38,7 +38,13 @@ const ChatMessage = ({ messages }: ChatMessageProps) => {
                      : 'bg-gray-100 text-black self-start'
                }`}
             >
-               <ReactMarkdown>{message.content}</ReactMarkdown>
+               <div
+                  className={`prose prose-sm max-w-none ${
+                     message.role === 'user' ? 'prose-invert' : ''
+                  }`}
+               >
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+               </div>
             </div>
          ))}
       </div>
