@@ -1,6 +1,6 @@
 import { reviewRepository } from '../repositories/review.repository';
 import { llmClient } from '../llm/client';
-import template from '../prompts/summarize-reviews.txt';
+import template from '../llm/prompts/summarize-reviews.txt';
 
 export const reviewService = {
    async summarizeReviews(productId: number): Promise<String> {
