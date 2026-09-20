@@ -1,68 +1,28 @@
-import axios from 'axios';
-import Skeleton from 'react-loading-skeleton';
 import { HiSparkles } from 'react-icons/hi';
 import StarRating from './starRating';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from '../ui/button';
-import { useState } from 'react';
 import ReviewSkeleton from './ReviewSkeleton';
+import {
+   reviewsApi,
+   type GetReviewsResponse,
+   type SummarizeResponse,
+} from './ReviewsApi';
 type props = {
    productId: number;
 };
 
-type Review = {
-   id: number;
-   author: string;
-   content: string;
-   rating: number;
-   createdAt: string;
-};
-
-type GetReviewsResponse = {
-   summary: string | null;
-   reviews: Review[];
-};
-
-type SummarizeResponse = {
-   summary: string;
-};
-
 const ReviewList = ({ productId }: props) => {
-   const [summary, setSummary] = useState('');
-   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-   const [summaryError, setSummaryError] = useState('');
-   const {
-      data: reviewData,
-      isLoading,
-      error,
-   } = useQuery<GetReviewsResponse>({
-      queryKey: [productId],
-      queryFn: () => fetchReviews(),
+   const summarizeMutation = useMutation<SummarizeResponse>({
+      mutationFn: () => reviewsApi.summarizeReviews(productId),
    });
 
-   const handleSummarize = async () => {
-      try {
-         setIsSummaryLoading(true);
-         const { data } = await axios.post<SummarizeResponse>(
-            `/api/products/${productId}/summarize`
-         );
-         setSummary(data.summary);
-      } catch (error) {
-         console.error(error);
-         setSummaryError('Could not summarize the reviews. Try again!');
-      } finally {
-         setIsSummaryLoading(false);
-      }
-   };
+   const reviewsQuery = useQuery<GetReviewsResponse>({
+      queryKey: [productId],
+      queryFn: () => reviewsApi.fetchReviews(productId),
+   });
 
-   const fetchReviews = async () => {
-      const { data } = await axios.get<GetReviewsResponse>(
-         `/api/products/${productId}/reviews`
-      );
-      return data;
-   };
-
-   if (isLoading) {
+   if (reviewsQuery.isLoading) {
       return (
          <div className="flex flex-col gap-5">
             {[1, 2, 3].map((i) => (
@@ -72,17 +32,18 @@ const ReviewList = ({ productId }: props) => {
       );
    }
 
-   if (error) {
+   if (reviewsQuery.isError) {
       return (
          <p className="text-red-500">Could not fetch the reviews. Try again!</p>
       );
    }
 
-   if (!reviewData?.reviews.length) {
+   if (!reviewsQuery.data?.reviews.length) {
       return null;
    }
 
-   const currentSummary = reviewData.summary || summary;
+   const currentSummary =
+      reviewsQuery.data.summary || summarizeMutation.data?.summary;
 
    return (
       <div>
@@ -92,26 +53,28 @@ const ReviewList = ({ productId }: props) => {
             ) : (
                <div>
                   <Button
-                     onClick={handleSummarize}
+                     onClick={() => summarizeMutation.mutate()}
                      className="cursor-pointer"
-                     disabled={isSummaryLoading}
+                     disabled={summarizeMutation.isPending}
                   >
                      <HiSparkles />
                      Summarize
                   </Button>
-                  {isSummaryLoading && (
+                  {summarizeMutation.isPending && (
                      <div className="py-3">
                         <ReviewSkeleton />
                      </div>
                   )}
-                  {summaryError && (
-                     <p className="text-red-500">{summaryError}</p>
+                  {summarizeMutation.isError && (
+                     <p className="text-red-500">
+                        Could not summarize reviews. Try again
+                     </p>
                   )}
                </div>
             )}
          </div>
          <div className="flex flex-col gap-5">
-            {reviewData?.reviews.map((review) => (
+            {reviewsQuery.data?.reviews.map((review) => (
                <div key={review.id}>
                   <div className="font-semibold">{review.author}</div>
                   <div>
