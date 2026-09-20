@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react';
+import { useEffect, type KeyboardEvent } from 'react';
 import { Button } from '../ui/button';
 import { FaArrowUp } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
@@ -9,10 +9,16 @@ export type ChatFormData = {
 
 type ChatInputProps = {
    onSubmit: (data: ChatFormData) => void;
+   active: boolean;
 };
 
-const ChatInput = ({ onSubmit }: ChatInputProps) => {
-   const { register, handleSubmit, reset, formState } = useForm<ChatFormData>();
+const ChatInput = ({ onSubmit, active }: ChatInputProps) => {
+   const { register, handleSubmit, reset, setFocus, formState } =
+      useForm<ChatFormData>();
+
+   useEffect(() => {
+      if (active) setFocus('prompt');
+   }, [active, setFocus]);
 
    const submit = handleSubmit((data) => {
       reset({ prompt: '' }); // Reset the form after submission

@@ -25,7 +25,7 @@ function App() {
             ))}
          </div>
          <div className={show('chat')}>
-            <ChatBot />
+            <ChatBot active={tab === 'chat'} />
          </div>
          <div className={show('reviews')}>
             <ReviewList productId={2} />

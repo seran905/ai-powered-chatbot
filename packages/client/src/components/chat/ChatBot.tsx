@@ -17,7 +17,7 @@ type ChatResponse = {
    message: string;
 };
 
-const ChatBot = () => {
+const ChatBot = ({ active }: { active: boolean }) => {
    const [messages, setMessages] = useState<Message[]>([]);
    const [isBotTyping, setIsBotTyping] = useState(false); // State to track if the bot is typing
    const [error, setError] = useState<string | null>('');
@@ -58,7 +58,7 @@ const ChatBot = () => {
                </div>
             )}
          </div>
-         <ChatInput onSubmit={onSubmit} />
+         <ChatInput onSubmit={onSubmit} active={active} />
       </div>
    );
 };
