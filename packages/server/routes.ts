@@ -18,4 +18,6 @@ router.post('/api/chat', chatController.sendMessage); // Use the chatController 
 
 router.get('/api/products/:id/reviews', reviewController.getReviews);
 
+router.get('/api/products/:id/summarize', reviewController.summarizeReviews);
+
 export default router;
