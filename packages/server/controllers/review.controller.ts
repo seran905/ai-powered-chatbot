@@ -8,25 +8,37 @@ export const reviewController = {
       const productId = Number(req.params.id);
 
       if (isNaN(productId)) {
-         return res.status(400).send('Invalid Product Id.');
-      }
-
-      const reviews = await reviewService.getReviews(productId);
-
-      res.json(reviews);
-   },
-   async summarizeReviews(req: Request, res: Response) {
-      const productId = Number(req.params.id);
-
-      if (isNaN(productId)) {
-         return res.status(400).send('Invalid Product Id.');
+         return res.status(400).json({ error: 'Invalid Product Id.' });
       }
 
       const product = await productRepository.getProduct(productId);
 
       if (!product) {
          return res
-            .status(400)
+            .status(404)
+            .json({ error: `No product found for product ID ${productId}.` });
+      }
+
+      const reviews = await reviewRepository.getReviews(productId);
+      const summary = await reviewRepository.getReviewSummary(productId);
+
+      res.json({
+         summary,
+         reviews,
+      });
+   },
+   async summarizeReviews(req: Request, res: Response) {
+      const productId = Number(req.params.id);
+
+      if (isNaN(productId)) {
+         return res.status(400).json({ error: 'Invalid Product Id.' });
+      }
+
+      const product = await productRepository.getProduct(productId);
+
+      if (!product) {
+         return res
+            .status(404)
             .json({ error: `No product found for product ID ${productId}.` });
       }
 
@@ -34,7 +46,7 @@ export const reviewController = {
 
       if (!reviews.length) {
          return res
-            .status(400)
+            .status(404)
             .json({ error: 'There are no reviews to summarize.' });
       }
 

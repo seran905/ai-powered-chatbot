@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import type { Review } from '../generated/prisma/client';
 import { prisma } from '../lib/prisma';
+import { gt } from 'zod';
 
 export const reviewRepository = {
    getReviews(productId: number, limit?: number): Promise<Review[]> {
@@ -29,9 +30,13 @@ export const reviewRepository = {
       });
    },
 
-   getReviewSummary(productId: number) {
-      return prisma.summary.findUnique({
-         where: { productId },
+   async getReviewSummary(productId: number): Promise<string | null> {
+      const summary = await prisma.summary.findFirst({
+         where: {
+            AND: [{ productId }, { expiresAt: { gt: new Date() } }],
+         },
       });
+
+      return summary ? summary.content : null;
    },
 };
